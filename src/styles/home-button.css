@@ -1,0 +1,8 @@
+.home-button {
+    cursor: pointer;
+    border: 2px solid #000;  /* Black border */
+    padding: 5px 10px;
+    border-radius: 4px;  /* Rounded corners */
+    text-decoration: none;  /* Optional: remove underline */
+    background-color: #48a730;  /* Light grey background */
+  }
