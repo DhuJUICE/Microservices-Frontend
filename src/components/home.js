@@ -1,56 +1,315 @@
-import React, { useState, useEffect } from 'react';
-import '../styles/home.css'; // Import the CSS file
-import Footer from './sectionComponents/footer'; // Import Footer component
+import React from 'react';
+import { Box, TextField, Button, FormControl, InputLabel, MenuItem, Select } from '@mui/material';
 
 const Home = () => {
-  const [memberCount, setMemberCount] = useState(0); // Default to 0 if no members
-  const [loading, setLoading] = useState(true); // State to manage loading state
-  const [error, setError] = useState(null); // State to manage error state
-
-  // Fetch member count from the API when the component mounts
-  useEffect(() => {
-    fetch('https://oppirifchess-backend.onrender.com/api/member/count')
-      .then((response) => response.json())
-      .then((data) => {
-        const count = data.member_count || 0; // Use 0 if member_count is empty or undefined
-        setMemberCount(count); // Set the member count
-        setLoading(false); // Set loading to false once the data is fetched
-      })
-      .catch((err) => {
-        setError("Failed to load member count"); // Set error state if the API call fails
-        setLoading(false); // Set loading to false if there's an error
-      });
-  }, []); // Empty array means this useEffect runs once when the component mounts
-
   return (
-    <div>
-      <main>
-        <div className="card">
-          <div className="content">
-            <h2>Welcome to Oppirif Chess Club</h2>
-            <p>
-              Ready to sharpen your mind and engage in some friendly competition?<br/>
-              At Oppirif Chess Club, we bring together chess enthusiasts of all skill levels to enjoy the timeless game of strategy.<br/>
-              Whether you're a beginner or a seasoned player, you'll find a supportive community here.<br/>
-              Join us for exciting matches, learning opportunities, and plenty of fun as we grow together as a chess family.
-            </p>
+    <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
 
-            {/* Display member count */}
-            <div className="member-count">
-              {loading ? (
-                <p>Loading member count...</p> // Show loading text while the data is being fetched
-              ) : error ? (
-                <p>{error}</p> // Show error message if the API call fails
-              ) : (
-                <p><br/><b>Total Members: {memberCount}</b></p> // Display the member count or 0
-              )}
-            </div>
-          </div>
-          
-        </div>
+      {/* HEADER SECTION */}
+      <Box
+        sx={{
+          height: '3%',
+          backgroundColor: '#f0f0f0',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 2,
+          gap: 1,
+          borderBottom: '1px solid #ccc',
+        }}
+      >
+        <h1 style={{ textAlign: 'center' }}>
+          Juniër Herandien's Computer Security Microservices Project
+        </h1>
+      </Box>
+
+      {/* Login SECTION */}
+      <Box
+        sx={{
+          height: '10%',
+          backgroundColor: '#f0f0f0',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 2,
+          gap: 1,
+          borderBottom: '1px solid #ccc',
+        }}
+      >
+        <Box sx={{ fontWeight: 'bold', marginBottom: 1 }}>
+          LOGIN
+        </Box>
         
-      </main>
-    </div>
+        <Box sx={{ fontWeight: 'bold', marginBottom: 1 }}>
+          <TextField
+            label="Username"
+            variant="outlined"
+            size="small"
+            sx={{ width: '200px' }}
+          />
+          <TextField
+            label="Password"
+            type="password"
+            variant="outlined"
+            size="small"
+            sx={{ width: '200px' }}
+          />
+          <Button variant="contained">
+            LOGIN
+          </Button>
+        </Box>
+      </Box>
+
+
+      {/* Top Half - User Management */}
+      <Box
+        sx={{
+          height: '40%',
+          backgroundColor: '#f0f0f0',
+          display: 'flex',
+          flexDirection: 'column',
+          paddingLeft: '100px',
+        }}
+      >
+        USER MANAGEMENT
+        
+        <Box
+          sx={{
+            flex: 1,
+            borderBottom: '1px solid #ccc',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'left',
+            fontWeight: 'bold',
+          }}
+        >
+          CREATE USER
+        </Box>
+        <Box
+          sx={{
+            flex: 1,
+            borderBottom: '1px solid #ccc',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'left',
+            fontWeight: 'bold',
+          }}
+        >
+          READ USER
+          <FormControl sx={{ width: 200 }}>
+            <InputLabel>User</InputLabel>
+            <Select
+              //value={selectedUser}
+              label="User"
+              //onChange={(e) => setSelectedUser(e.target.value)} //this links to an event function when the option in the dropdown is changed
+            >
+              <MenuItem value="user1">user1</MenuItem>
+              <MenuItem value="user2">user2</MenuItem>
+              <MenuItem value="user3">user3</MenuItem>
+            </Select>
+          </FormControl>
+
+          <Button
+            variant="contained"
+            color="error"
+            //onClick={handleDelete}
+            //disabled={!selectedUser}
+          >
+            READ USER
+          </Button>
+        </Box>
+        <Box
+          sx={{
+            flex: 1,
+            borderBottom: '1px solid #ccc',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'left',
+            fontWeight: 'bold',
+          }}
+        >
+          UPDATE USER
+          <FormControl sx={{ width: 200 }}>
+            <InputLabel>User</InputLabel>
+            <Select
+              //value={selectedUser}
+              label="User"
+              //onChange={(e) => setSelectedUser(e.target.value)} //this links to an event function when the option in the dropdown is changed
+            >
+              <MenuItem value="user1">user1</MenuItem>
+              <MenuItem value="user2">user2</MenuItem>
+              <MenuItem value="user3">user3</MenuItem>
+            </Select>
+          </FormControl>
+
+          <Button
+            variant="contained"
+            color="error"
+            //onClick={handleDelete}
+            //disabled={!selectedUser}
+          >
+            UPDATE USER
+          </Button>
+        </Box>
+        <Box
+          sx={{
+            flex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'left',
+            fontWeight: 'bold',
+          }}
+        >
+          DELETE USER
+          <FormControl sx={{ width: 200 }}>
+            <InputLabel>User</InputLabel>
+            <Select
+              //value={selectedUser}
+              label="User"
+              //onChange={(e) => setSelectedUser(e.target.value)} //this links to an event function when the option in the dropdown is changed
+            >
+              <MenuItem value="user1">user1</MenuItem>
+              <MenuItem value="user2">user2</MenuItem>
+              <MenuItem value="user3">user3</MenuItem>
+            </Select>
+          </FormControl>
+
+          <Button
+            variant="contained"
+            color="error"
+            //onClick={handleDelete}
+            //disabled={!selectedUser}
+          >
+            DELETE USER
+          </Button>
+        </Box>
+      </Box>
+
+      {/* Bottom Half - Finances Management */}
+      <Box
+        sx={{
+          height: '40%',
+          backgroundColor: '#d0e0ff',
+          display: 'flex',
+          flexDirection: 'column',
+          paddingRight: '100px',
+        }}
+      >
+        FINANCE MANAGEMENT
+        <Box
+          sx={{
+            flex: 1,
+            borderBottom: '1px solid #aaa',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'right',
+            fontWeight: 'bold',
+          }}
+        >
+          CREATE FINANCE
+        </Box>
+        <Box
+          sx={{
+            flex: 1,
+            borderBottom: '1px solid #ccc',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'right',
+            fontWeight: 'bold',
+          }}
+        >
+          READ FINANCE
+          <FormControl sx={{ width: 200 }}>
+            <InputLabel>User</InputLabel>
+            <Select
+              //value={selectedUser}
+              label="User"
+              //onChange={(e) => setSelectedUser(e.target.value)} //this links to an event function when the option in the dropdown is changed
+            >
+              <MenuItem value="user1">user1</MenuItem>
+              <MenuItem value="user2">user2</MenuItem>
+              <MenuItem value="user3">user3</MenuItem>
+            </Select>
+          </FormControl>
+
+          <Button
+            variant="contained"
+            color="error"
+            //onClick={handleDelete}
+            //disabled={!selectedUser}
+          >
+            READ FINANCE
+          </Button>
+        </Box>
+        <Box
+          sx={{
+            flex: 1,
+            borderBottom: '1px solid #ccc',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'right',
+            fontWeight: 'bold',
+          }}
+        >
+          UPDATE FINANCE
+          <FormControl sx={{ width: 200 }}>
+            <InputLabel>User</InputLabel>
+            <Select
+              //value={selectedUser}
+              label="User"
+              //onChange={(e) => setSelectedUser(e.target.value)} //this links to an event function when the option in the dropdown is changed
+            >
+              <MenuItem value="user1">user1</MenuItem>
+              <MenuItem value="user2">user2</MenuItem>
+              <MenuItem value="user3">user3</MenuItem>
+            </Select>
+          </FormControl>
+
+          <Button
+            variant="contained"
+            color="error"
+            //onClick={handleDelete}
+            //disabled={!selectedUser}
+          >
+            UPDATE FINANCE
+          </Button>
+        </Box>
+        <Box
+          sx={{
+            flex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'right',
+            fontWeight: 'bold',
+          }}
+        >
+          DELETE FINANCE
+          <FormControl sx={{ width: 200 }}>
+            <InputLabel>User</InputLabel>
+            <Select
+              //value={selectedUser}
+              label="User"
+              //onChange={(e) => setSelectedUser(e.target.value)} //this links to an event function when the option in the dropdown is changed
+            >
+              <MenuItem value="user1">user1</MenuItem>
+              <MenuItem value="user2">user2</MenuItem>
+              <MenuItem value="user3">user3</MenuItem>
+            </Select>
+          </FormControl>
+
+          <Button
+            variant="contained"
+            color="error"
+            //onClick={handleDelete}
+            //disabled={!selectedUser}
+          >
+            DELETE FINANCE
+          </Button>
+        </Box>
+      </Box>
+    </Box>
   );
 };
 
