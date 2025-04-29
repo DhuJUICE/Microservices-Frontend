@@ -1,7 +1,42 @@
-import React from 'react';
 import { Box, TextField, Button, FormControl, InputLabel, MenuItem, Select } from '@mui/material';
+import React, { useState } from 'react';
 
 const Home = () => {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [token, setToken] = useState(null);
+  const [error, setError] = useState(null);
+
+  const handleLogin = async () => {
+    try {
+      const res = await fetch('http://127.0.0.1:3000/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username, password })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error);
+        setError(data.error || 'Login failed');
+        setToken(null);
+        return;
+      }
+      alert("Successfully Logged In");
+
+      setToken(data.token);
+      setError(null);
+      localStorage.setItem('token', data.token); // Optional: store token for future requests
+      const token = localStorage.getItem("token");
+      alert("Token: " + token);
+    } catch (err) {
+      setError('Error connecting to server');
+    }
+  };
+
   return (
     <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
 
@@ -38,28 +73,31 @@ const Home = () => {
           borderBottom: '1px solid #ccc',
         }}
       >
-        <Box sx={{ fontWeight: 'bold', marginBottom: 1 }}>
+        <Box sx={{ fontWeight: 'bold', marginBottom: 1 }}>LOGIN</Box>
+
+        <TextField
+          label="Username"
+          variant="outlined"
+          size="small"
+          sx={{ width: '200px', marginBottom: 1 }}
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+        <TextField
+          label="Password"
+          type="password"
+          variant="outlined"
+          size="small"
+          sx={{ width: '200px', marginBottom: 1 }}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <Button variant="contained" onClick={handleLogin}>
           LOGIN
-        </Box>
-        
-        <Box sx={{ fontWeight: 'bold', marginBottom: 1 }}>
-          <TextField
-            label="Username"
-            variant="outlined"
-            size="small"
-            sx={{ width: '200px' }}
-          />
-          <TextField
-            label="Password"
-            type="password"
-            variant="outlined"
-            size="small"
-            sx={{ width: '200px' }}
-          />
-          <Button variant="contained">
-            LOGIN
-          </Button>
-        </Box>
+        </Button>
+
+        {error && <p style={{ color: 'red' }}>{error}</p>}
+        {token && <p style={{ color: 'green' }}>Token saved!</p>}
       </Box>
 
 
