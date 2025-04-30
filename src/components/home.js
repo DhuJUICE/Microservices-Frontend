@@ -29,9 +29,14 @@ const Home = () => {
 
       setToken(data.token);
       setError(null);
-      localStorage.setItem('token', data.token); // Optional: store token for future requests
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('role', data.role);
+      localStorage.setItem('username', data.username);
       const token = localStorage.getItem("token");
-      alert("Token: " + token);
+      const role = localStorage.getItem("role");
+      const userName = localStorage.getItem("username");
+      alert("Token: " + token + "\nRole: " + role + "\nUsername: " + userName);
+      
     } catch (err) {
       setError('Error connecting to server');
     }
