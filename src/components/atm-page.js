@@ -9,12 +9,20 @@ import {
   const AtmPage = () => {
     const [withdrawAmount, setWithdrawAmount] = useState('');
     const [depositAmount, setDepositAmount] = useState('');
-  
+    const minWithdraw = 20;
+    const minDeposit = 10;
+
     const handleWithdraw = () => {
       if (!withdrawAmount) {
         alert('Please enter an amount to withdraw.');
         return;
       }
+
+      if (withdrawAmount < minWithdraw) {
+        alert(`Can only withdraw amount minimum R${minWithdraw}`);
+        return;
+      }
+
       alert(`Withdrew R${withdrawAmount} from the account.`);
       setWithdrawAmount('');
     };
@@ -24,6 +32,12 @@ import {
         alert('Please enter an amount to deposit.');
         return;
       }
+
+      if (depositAmount < minDeposit) {
+        alert(`Can only deposit amount minimum R${minDeposit}`);
+        return;
+      }
+
       alert(`Deposited R${depositAmount} into the account.`);
       setDepositAmount('');
     };

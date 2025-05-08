@@ -45,8 +45,6 @@ const Home = () => {
       // Redirect user based on role
       if (role === "bank_supervisor") {
         navigate("/supervisor");
-      } else if (role === "bank_manager") {
-        navigate("/manager");
       } else if (role === "bank_teller") {
         navigate("/teller");
       } else {
