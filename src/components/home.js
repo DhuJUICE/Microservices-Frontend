@@ -35,18 +35,18 @@ const Home = () => {
       localStorage.setItem('token', data.token);
       localStorage.setItem('role', data.role);
       localStorage.setItem('username', data.username);
+      localStorage.setItem('userId', data.userId);
 
       const token = localStorage.getItem("token");
       const role = localStorage.getItem("role");
       const userName = localStorage.getItem("username");
+      const userId = localStorage.getItem("userId");
 
-      alert("Token: " + token + "\nRole: " + role + "\nUsername: " + userName);
+      alert("Token: " + token + "\nRole: " + role + "\nUsername: " + userName + "\nUserId: " + userId);
 
       // Redirect user based on role
       if (role === "bank_supervisor") {
         navigate("/supervisor");
-      } else if (role === "bank_teller") {
-        navigate("/teller");
       } else {
         navigate("/atm");
       }
