@@ -6,7 +6,6 @@ import Header from "./components/Header";
 // Importing your components
 import Home from "./components/home";
 import SupervisorPage from "./components/supervisor-page";
-import TellerPage from "./components/teller-page";
 import AtmPage from "./components/atm-page";
 
 function App() {
@@ -22,7 +21,6 @@ function App() {
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/supervisor" element={<SupervisorPage/>}/>
-                <Route path="/teller" element={<TellerPage/>}/>
                 <Route path="/atm" element={<AtmPage/>}/>
               </Routes>
           </div>
