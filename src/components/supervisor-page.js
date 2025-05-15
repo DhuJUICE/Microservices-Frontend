@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   TextField,
@@ -11,219 +11,344 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
 } from '@mui/material';
 
 const getRandomAccountNumber = () =>
   Math.floor(1000000000 + Math.random() * 9000000000).toString();
 
 const SupervisorPage = () => {
-  const [users, setUsers] = useState([
-    {
-      username: 'john_doe',
-      password: 'password123',
-      bankName: 'Global Bank',
-      bankAccountNumber: '1234567890',
-      balance: 500,
-    },
-    {
-      username: 'jane_smith',
-      password: 'password456',
-      bankName: 'TechBank',
-      bankAccountNumber: '0987654321',
-      balance: 2000,
-    },
-    {
-      username: 'alex_jones',
-      password: 'password789',
-      bankName: 'Trust Bank',
-      bankAccountNumber: '1122334455',
-      balance: 1500,
-    },
-  ]);
-
-  const [selectedUser, setSelectedUser] = useState('');
-  const [newUser, setNewUser] = useState({
+  const [usersData, setUsersData] = useState([]); // array of financial records with nested user
+  const [selectedId, setSelectedId] = useState('');
+  const [newUserData, setNewUserData] = useState({
     username: '',
     password: '',
+    role: 'bank_client', // default role, can adjust if needed
     bankName: '',
     bankAccountNumber: '',
-    balance: 0,
+    bankBalance: 0,
   });
+  const [section, setSection] = useState(''); // '', 'create', 'list', 'update'
+
+  useEffect(() => {
+    const fetchUsersData = async () => {
+      try {
+        const token = localStorage.getItem('token'); // adjust if needed
+
+        const response = await fetch('http://127.0.0.1:3000/bank-account/details', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({}),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch data');
+        }
+
+        const result = await response.json();
+        if (Array.isArray(result.data)) {
+          setUsersData(result.data);
+        } else {
+          console.warn('Unexpected data format:', result.data);
+        }
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      }
+    };
+
+    fetchUsersData();
+  }, []);
 
   const handleChange = (e) => {
-    setNewUser({ ...newUser, [e.target.name]: e.target.value });
+    setNewUserData({
+      ...newUserData,
+      [e.target.name]: e.target.value,
+    });
   };
 
   const createUser = () => {
-    if (!newUser.username || !newUser.password || !newUser.bankName) return;
-    const userExists = users.some((u) => u.username === newUser.username);
-    if (userExists) return alert('Username already exists.');
-    const fullUser = {
-      ...newUser,
+    const { username, password, bankName } = newUserData;
+    if (!username || !password || !bankName) {
+      alert('Please fill username, password, and bank name');
+      return;
+    }
+    // Check duplicate username
+    const exists = usersData.some((u) => u.user.username === username);
+    if (exists) {
+      alert('Username already exists');
+      return;
+    }
+
+    const newRecord = {
+      id: Date.now(),
+      user: {
+        id: Date.now(),
+        username: newUserData.username,
+        password: newUserData.password,
+        role: 'bank_client',
+      },
+      bankName: newUserData.bankName,
       bankAccountNumber: getRandomAccountNumber(),
-      balance: 0,
+      bankBalance: 0,
     };
-    setUsers([...users, fullUser]);
-    setNewUser({
+
+    setUsersData([...usersData, newRecord]);
+    setNewUserData({
       username: '',
       password: '',
+      role: 'bank_client',
       bankName: '',
       bankAccountNumber: '',
-      balance: 0,
+      bankBalance: 0,
     });
   };
 
   const deleteUser = () => {
-    setUsers(users.filter((u) => u.username !== selectedUser));
-    setSelectedUser('');
+    if (!selectedId) return;
+    setUsersData(usersData.filter((u) => u.id !== selectedId));
+    setSelectedId('');
+    setNewUserData({
+      username: '',
+      password: '',
+      role: 'bank_client',
+      bankName: '',
+      bankAccountNumber: '',
+      bankBalance: 0,
+    });
   };
 
   const updateUser = () => {
-    setUsers(
-      users.map((u) =>
-        u.username === selectedUser
-          ? {
-              ...u,
-              ...newUser,
-              bankAccountNumber: u.bankAccountNumber,
-              balance: u.balance,
-            }
-          : u
-      )
+    if (!selectedId) return;
+    setUsersData(
+      usersData.map((record) => {
+        if (record.id === selectedId) {
+          return {
+            ...record,
+            user: {
+              ...record.user,
+              username: newUserData.username,
+              password: newUserData.password,
+              role: record.user.role,
+            },
+            bankName: newUserData.bankName,
+            bankAccountNumber: record.bankAccountNumber,
+            bankBalance: record.bankBalance,
+          };
+        }
+        return record;
+      })
     );
-    setNewUser({
+    setSelectedId('');
+    setNewUserData({
       username: '',
       password: '',
+      role: 'bank_client',
       bankName: '',
       bankAccountNumber: '',
-      balance: 0,
+      bankBalance: 0,
     });
-    setSelectedUser('');
   };
 
-  const selected = users.find((u) => u.username === selectedUser);
+  const handleSelectChange = (e) => {
+    const id = e.target.value;
+    setSelectedId(id);
+    const record = usersData.find((u) => u.id === id);
+    if (record) {
+      setNewUserData({
+        username: record.user.username,
+        password: record.user.password,
+        role: record.user.role,
+        bankName: record.bankName,
+        bankAccountNumber: record.bankAccountNumber,
+        bankBalance: record.bankBalance,
+      });
+    } else {
+      setNewUserData({
+        username: '',
+        password: '',
+        role: 'bank_client',
+        bankName: '',
+        bankAccountNumber: '',
+        bankBalance: 0,
+      });
+    }
+  };
+
+  // When changing section, clear selection and form data
+  const handleSectionChange = (e) => {
+    setSection(e.target.value);
+    setSelectedId('');
+    setNewUserData({
+      username: '',
+      password: '',
+      role: 'bank_client',
+      bankName: '',
+      bankAccountNumber: '',
+      bankBalance: 0,
+    });
+  };
 
   return (
-    <Box sx={{ p: '20px 100px', minHeight: '100vh', backgroundColor: '#f0f0f0' }}>
-      <Typography variant="h5" gutterBottom>
-        👤 Supervisor - User & Bank Account Management
+    <Box sx={{ p: '20px 100px', minHeight: '100vh', backgroundColor: '#f9f9f9' }}>
+      <Typography variant="h4" gutterBottom textAlign={"center"}>
+        Bank Account Management
       </Typography>
 
-      {/* Create User */}
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 4 }}>
-        <Typography fontWeight="bold">➕ CREATE USER</Typography>
-        <TextField
-          label="Username"
-          name="username"
-          value={newUser.username}
-          onChange={handleChange}
-        />
-        <TextField
-          label="Password"
-          name="password"
-          type="password"
-          value={newUser.password}
-          onChange={handleChange}
-        />
-        <TextField
-          label="Bank Name"
-          name="bankName"
-          value={newUser.bankName}
-          onChange={handleChange}
-        />
-        <Button variant="contained" onClick={createUser}>
-          Create User
-        </Button>
-      </Box>
+      {/* Radio buttons for section selection */}
+      <FormControl component="fieldset" sx={{ mb: 5}}>
+        <RadioGroup
+          row
+          value={section}
+          onChange={handleSectionChange}
+          aria-label="section"
+          name="section"
+        >
+          <FormControlLabel value="create" control={<Radio />} label="Create Bank Account" />
+          <FormControlLabel value="list" control={<Radio />} label="See Bank Accounts" />
+          <FormControlLabel value="update" control={<Radio />} label="Update/Delete Bank Account" />
+        </RadioGroup>
+      </FormControl>
 
-      {/* Select User */}
-      <Box sx={{ mb: 4 }}>
-        <Typography fontWeight="bold">📄 Select User</Typography>
-        <FormControl sx={{ width: 200 }}>
-          <InputLabel>User</InputLabel>
-          <Select
-            value={selectedUser}
-            label="User"
-            onChange={(e) => {
-              setSelectedUser(e.target.value);
-              const found = users.find((u) => u.username === e.target.value);
-              setNewUser(
-                found || {
-                  username: '',
-                  password: '',
-                  bankName: '',
-                  bankAccountNumber: '',
-                  balance: 0,
-                }
-              );
-            }}
-          >
-            {users.map((u) => (
-              <MenuItem key={u.username} value={u.username}>
-                {u.username}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      </Box>
+      {/* Conditionally render based on selected section */}
 
-      {/* Update User */}
-      {selected && (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 4 }}>
-          <Typography fontWeight="bold">✏️ UPDATE USER</Typography>
+      {section === 'create' && (
+        <Box sx={{ mb: 5 }}>
+          <Typography variant="h6" gutterBottom>
+            CREATE NEW BANK ACCOUNT
+          </Typography>
+          <TextField
+            label="Username"
+            name="username"
+            value={newUserData.username}
+            onChange={handleChange}
+            fullWidth
+            sx={{ mb: 2 }}
+          />
           <TextField
             label="Password"
             name="password"
             type="password"
-            value={newUser.password}
+            value={newUserData.password}
             onChange={handleChange}
+            fullWidth
+            sx={{ mb: 2 }}
           />
           <TextField
             label="Bank Name"
             name="bankName"
-            value={newUser.bankName}
+            value={newUserData.bankName}
             onChange={handleChange}
+            fullWidth
+            sx={{ mb: 2 }}
           />
-          <Button variant="contained" color="warning" onClick={updateUser}>
-            Update User
+          <Button variant="contained" onClick={createUser} fullWidth>
+            Create User
           </Button>
         </Box>
       )}
 
-      {/* Delete User */}
-      <Box sx={{ mb: 4 }}>
-        <Typography fontWeight="bold">🗑️ DELETE USER</Typography>
-        <Button
-          variant="contained"
-          color="error"
-          disabled={!selectedUser}
-          onClick={deleteUser}
-        >
-          Delete User
-        </Button>
-      </Box>
+      {section === 'list' && (
+        <Box sx={{ mb: 5 }}>
+          <Typography variant="h6" gutterBottom>
+            All Bank Accounts
+          </Typography>
+          <List>
+            {usersData.map((record) => (
+              <ListItem key={record.id} divider>
+                <ListItemText
+                  primary={`${record.user.username} (Role: ${record.user.role})`}
+                  secondary={
+                    <>
+                      Password: {record.user.password} <br />
+                      Bank Name: {record.bankName} <br />
+                      Account Number: {record.bankAccountNumber} <br />
+                      Balance: R{(record.bankBalance ?? 0).toFixed(2)}
+                    </>
+                  }
+                />
+              </ListItem>
+            ))}
+          </List>
+        </Box>
+      )}
 
-      {/* Display All Users */}
-      <Box sx={{ backgroundColor: '#fff', p: 4 }}>
-        <Typography variant="h6">📋 All Users & Bank Accounts</Typography>
-        <List>
-          {users.map((user) => (
-            <ListItem key={user.username}>
-              <ListItemText
-                primary={`👤 ${user.username}`}
-                secondary={
-                  <>
-                    🔐 Password: {user.password} <br />
-                    🏦 Bank Name: {user.bankName} <br />
-                    💳 Account Number: {user.bankAccountNumber} <br />
-                    💰 Balance: R{user.balance.toFixed(2)}
-                  </>
-                }
+      {section === 'update' && (
+        <Box sx={{ mb: 5 }}>
+          <Typography variant="h6" gutterBottom>
+            SELECT USER/CLIENT
+          </Typography>
+          <FormControl fullWidth sx={{ mb: 3 }}>
+            <InputLabel>User</InputLabel>
+            <Select value={selectedId} label="User" onChange={handleSelectChange}>
+              {usersData.map((record) => (
+                <MenuItem key={record.id} value={record.id}>
+                  {record.user.username}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          {selectedId && (
+            <>
+              <Typography variant="h6" gutterBottom>
+                UPDATE BANK ACCOUNT
+              </Typography>
+              <TextField
+                label="Username"
+                name="username"
+                value={newUserData.username}
+                onChange={handleChange}
+                fullWidth
+                sx={{ mb: 2 }}
               />
-            </ListItem>
-          ))}
-        </List>
-      </Box>
+              <TextField
+                label="Password"
+                name="password"
+                type="password"
+                value={newUserData.password}
+                onChange={handleChange}
+                fullWidth
+                sx={{ mb: 2 }}
+              />
+              <TextField
+                label="Bank Name"
+                name="bankName"
+                value={newUserData.bankName}
+                onChange={handleChange}
+                fullWidth
+                sx={{ mb: 2 }}
+              />
+              <TextField
+                label="Bank Account Number"
+                name="bankAccountNumber"
+                value={newUserData.bankAccountNumber}
+                InputProps={{ readOnly: true }}
+                fullWidth
+                sx={{ mb: 2 }}
+              />
+              <TextField
+                label="Balance"
+                name="bankBalance"
+                value={newUserData.bankBalance}
+                InputProps={{ readOnly: true }}
+                fullWidth
+                sx={{ mb: 2 }}
+              />
+              <Button variant="contained" color="warning" onClick={updateUser} fullWidth sx={{ mb: 2 }}>
+                UPDATE BANK ACCOUNT
+              </Button>
+              <Button variant="contained" color="error" onClick={deleteUser} fullWidth>
+                DELETE BANK ACCOUNT
+              </Button>
+            </>
+          )}
+        </Box>
+      )}
     </Box>
   );
 };

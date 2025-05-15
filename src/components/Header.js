@@ -6,8 +6,8 @@ const Header = () => {
   return (
     <Box
       sx={{
-        height: '3%',
-        backgroundColor: 'lightblue',
+   
+        backgroundColor: 'green',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -18,7 +18,7 @@ const Header = () => {
       }}
     >
       <h1 style={{ textAlign: 'center' }}>
-        Secure Banking - Computer Security Microservices Project
+        Secure Banking
       </h1>
     </Box>
   );
