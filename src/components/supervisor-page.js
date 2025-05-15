@@ -71,8 +71,9 @@ const SupervisorPage = () => {
     });
   };
 
-  const createUser = () => {
+  const createUser = async () => {
     const { username, password, bankName } = newUserData;
+
     if (!username || !password || !bankName) {
       alert('Please fill username, password, and bank name');
       return;
@@ -84,29 +85,66 @@ const SupervisorPage = () => {
       return;
     }
 
-    const newRecord = {
-      id: Date.now(),
-      user: {
-        id: Date.now(),
-        username: newUserData.username,
-        password: newUserData.password,
-        role: 'bank_client',
-      },
-      bankName: newUserData.bankName,
-      bankAccountNumber: getRandomAccountNumber(),
-      bankBalance: 0,
-    };
+    const newBankAccountNumber = getRandomAccountNumber();
 
-    setUsersData([...usersData, newRecord]);
-    setNewUserData({
-      username: '',
-      password: '',
-      role: 'bank_client',
-      bankName: '',
-      bankAccountNumber: '',
-      bankBalance: 0,
-    });
+    try {
+      const token = localStorage.getItem('token');
+
+      const response = await fetch('http://127.0.0.1:3000/bank-account/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          username,
+          password,
+          role: 'bank_client',
+          bankName,
+          bankAccountNumber: newBankAccountNumber,
+          bankBalance: 0,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create bank account');
+      }
+
+      const result = await response.json();
+
+      // Optionally add the new record locally for immediate UI feedback
+      const newRecord = {
+        id: Date.now(), // fallback ID for frontend rendering
+        user: {
+          id: Date.now(),
+          username,
+          password,
+          role: 'bank_client',
+        },
+        bankName,
+        bankAccountNumber: newBankAccountNumber,
+        bankBalance: 0,
+      };
+
+      setUsersData([...usersData, newRecord]);
+
+      setNewUserData({
+        username: '',
+        password: '',
+        role: 'bank_client',
+        bankName: '',
+        bankAccountNumber: '',
+        bankBalance: 0,
+      });
+
+      alert('Bank Account created successfully!');
+    } catch (error) {
+      alert(error.message);
+      console.error('Error creating user:', error);
+      alert('An error occurred while creating the user');
+    }
   };
+
 
   const deleteUser = async () => {
 	if (!selectedId) return;
@@ -307,7 +345,7 @@ const SupervisorPage = () => {
               <Typography variant="h6" gutterBottom>
                 UPDATE BANK ACCOUNT
               </Typography>
-              <TextField label="Username" name="username" value={newUserData.username} onChange={handleChange} fullWidth sx={{ mb: 2 }} />
+              <TextField label="Username" name="username" value={newUserData.username} InputProps={{ readOnly: true }} onChange={handleChange} fullWidth sx={{ mb: 2 }} />
               <TextField label="Password" name="password" type="password" value={newUserData.password} onChange={handleChange} fullWidth sx={{ mb: 2 }} />
               <TextField label="Bank Name" name="bankName" value={newUserData.bankName} onChange={handleChange} fullWidth sx={{ mb: 2 }} />
               <TextField label="Bank Account Number" name="bankAccountNumber" value={newUserData.bankAccountNumber} InputProps={{ readOnly: true }} fullWidth sx={{ mb: 2 }} />
