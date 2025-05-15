@@ -195,37 +195,85 @@ const SupervisorPage = () => {
 	}
   };
 
-  const updateUser = () => {
+  const updateUser = async () => {
     if (!selectedId) return;
-    setUsersData(
-      usersData.map((record) => {
-        if (record.id === selectedId) {
-          return {
-            ...record,
-            user: {
-              ...record.user,
-              username: newUserData.username,
-              password: newUserData.password,
-              role: record.user.role,
-            },
-            bankName: newUserData.bankName,
-            bankAccountNumber: record.bankAccountNumber,
-            bankBalance: record.bankBalance,
-          };
-        }
-        return record;
-      })
-    );
-    setSelectedId('');
-    setNewUserData({
-      username: '',
-      password: '',
-      role: 'bank_client',
-      bankName: '',
-      bankAccountNumber: '',
-      bankBalance: 0,
-    });
+
+    const record = usersData.find((r) => r.id === selectedId);
+    if (!record) return;
+
+    const requestBody = {
+      userId: record.user.id,
+      bankAccountId: selectedId,
+      oldUsername: record.user.username,
+      password: newUserData.password,
+
+      bankName: newUserData.bankName,
+      oldBankBalance: record.bankBalance,
+      oldBankAccountNumber: record.bankAccountNumber,
+      oldUser: record.user
+    };
+
+
+    try {
+      const token = localStorage.getItem('token');
+
+      const response = await fetch('http://127.0.0.1:3000/bank-account/update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`, // assuming token is defined in scope
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      
+
+      if (!response.ok) {
+        alert('Failed to update bank account');
+        return;
+      }
+
+      const result = await response.json(); // optional: log result or notify user
+      alert('Bank account updated successfully');
+
+      // Update local state only after success
+      setUsersData(
+        usersData.map((record) => {
+          if (record.id === selectedId) {
+            return {
+              ...record,
+              user: {
+                ...record.user,
+                username: newUserData.username,
+                password: newUserData.password,
+                role: record.user.role,
+              },
+              bankName: newUserData.bankName,
+              bankAccountNumber: record.bankAccountNumber,
+              bankBalance: record.bankBalance,
+            };
+          }
+          return record;
+        })
+      );
+
+      // Reset form
+      setSelectedId('');
+      setNewUserData({
+        username: '',
+        password: '',
+        role: 'bank_client',
+        bankName: '',
+        bankAccountNumber: '',
+        bankBalance: 0,
+      });
+
+    } catch (error) {
+      console.error('Error updating user:', error);
+    }
+
   };
+
 
   const handleSelectChange = (e) => {
     const id = e.target.value;
