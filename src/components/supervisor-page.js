@@ -20,6 +20,11 @@ const getRandomAccountNumber = () =>
   Math.floor(1000000000 + Math.random() * 9000000000).toString();
 
 const SupervisorPage = () => {
+	const [updateUserData, setUpdateUserData] = useState({
+		password: '',
+		bankName: '',
+	  });
+
   const [usersData, setUsersData] = useState([]);
   const [selectedId, setSelectedId] = useState('');
   const [newUserData, setNewUserData] = useState({
@@ -32,41 +37,48 @@ const SupervisorPage = () => {
   });
   const [section, setSection] = useState('');
 
-  useEffect(() => {
-    const fetchUsersData = async () => {
-      try {
-        const token = localStorage.getItem('token');
+  const fetchUsersData = async () => {
+	try {
+	  const token = localStorage.getItem('token');
+  
+	  const response = await fetch('http://127.0.0.1:3000/bank-account/details', {
+		method: 'POST',
+		headers: {
+		  'Content-Type': 'application/json',
+		  Authorization: `Bearer ${token}`,
+		},
+		body: JSON.stringify({}),
+	  });
+  
+	  if (!response.ok) {
+		throw new Error('Failed to fetch data');
+	  }
+  
+	  const result = await response.json();
+	  if (Array.isArray(result.data)) {
+		setUsersData(result.data);
+	  } else {
+		console.warn('Unexpected data format:', result.data);
+	  }
+	} catch (error) {
+	  console.error('Error fetching users:', error);
+	}
+  };
 
-        const response = await fetch('http://127.0.0.1:3000/bank-account/details', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({}),
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch data');
-        }
-
-        const result = await response.json();
-        if (Array.isArray(result.data)) {
-          setUsersData(result.data);
-        } else {
-          console.warn('Unexpected data format:', result.data);
-        }
-      } catch (error) {
-        console.error('Error fetching users:', error);
-      }
-    };
-
-    fetchUsersData();
-  }, []);
+ 	useEffect(() => {
+		fetchUsersData();
+	}, []);
 
   const handleChange = (e) => {
     setNewUserData({
       ...newUserData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const updateChange = (e) => {
+    setUpdateUserData({
+      ...updateUserData,
       [e.target.name]: e.target.value,
     });
   };
@@ -138,6 +150,8 @@ const SupervisorPage = () => {
       });
 
       alert('Bank Account created successfully!');
+
+	  fetchUsersData();
     } catch (error) {
       alert(error.message);
       console.error('Error creating user:', error);
@@ -189,6 +203,7 @@ const SupervisorPage = () => {
 		bankAccountNumber: '',
 		bankBalance: 0,
 	  });
+	  fetchUsersData();
 	} catch (error) {
 	  console.error('Error deleting bank account:', error);
 	  alert('An error occurred while deleting the bank account');
@@ -201,18 +216,21 @@ const SupervisorPage = () => {
     const record = usersData.find((r) => r.id === selectedId);
     if (!record) return;
 
-    const requestBody = {
-      userId: record.user.id,
-      bankAccountId: selectedId,
-      oldUsername: record.user.username,
-      password: newUserData.password,
+	if (!updateUserData.password && !updateUserData.bankName) {
+      alert('At least Password or BankName is required');
+      return;
+    }
 
-      bankName: newUserData.bankName,
-      oldBankBalance: record.bankBalance,
-      oldBankAccountNumber: record.bankAccountNumber,
-      oldUser: record.user
-    };
-
+	const requestBody = {
+			userId: record.user.id,
+			bankAccountId: selectedId,
+			oldUsername: record.user.username,
+			password: updateUserData.password,
+			bankName: updateUserData.bankName,
+			oldBankBalance: record.bankBalance,
+			oldBankAccountNumber: record.bankAccountNumber,
+			oldUser: record.user
+	};	
 
     try {
       const token = localStorage.getItem('token');
@@ -226,8 +244,6 @@ const SupervisorPage = () => {
         body: JSON.stringify(requestBody),
       });
 
-      
-
       if (!response.ok) {
         alert('Failed to update bank account');
         return;
@@ -235,6 +251,11 @@ const SupervisorPage = () => {
 
       const result = await response.json(); // optional: log result or notify user
       alert('Bank account updated successfully');
+
+	  setUpdateUserData({
+		password: '',
+		bankName: '',
+	  });
 
       // Update local state only after success
       setUsersData(
@@ -267,7 +288,7 @@ const SupervisorPage = () => {
         bankAccountNumber: '',
         bankBalance: 0,
       });
-
+	  fetchUsersData();
     } catch (error) {
       console.error('Error updating user:', error);
     }
@@ -279,6 +300,10 @@ const SupervisorPage = () => {
     const id = e.target.value;
     setSelectedId(id);
     const record = usersData.find((u) => u.id === id);
+	setUpdateUserData({
+		password: '',
+		bankName: '',
+	  });
     if (record) {
       setNewUserData({
         username: record.user.username,
@@ -311,6 +336,7 @@ const SupervisorPage = () => {
       bankAccountNumber: '',
       bankBalance: 0,
     });
+
   };
 
   return (
@@ -342,7 +368,7 @@ const SupervisorPage = () => {
           <TextField label="Password" name="password" type="password" value={newUserData.password} onChange={handleChange} fullWidth sx={{ mb: 2 }} />
           <TextField label="Bank Name" name="bankName" value={newUserData.bankName} onChange={handleChange} fullWidth sx={{ mb: 2 }} />
           <Button variant="contained" onClick={createUser} fullWidth>
-            Create User
+            CREATE BANK ACCOUNT
           </Button>
         </Box>
       )}
@@ -356,10 +382,9 @@ const SupervisorPage = () => {
             {usersData.map((record) => (
               <ListItem key={record.id} divider>
                 <ListItemText
-                  primary={`${record.user.username} (Role: ${record.user.role})`}
+                  primary={`Client: ${record.user.username}`}
                   secondary={
                     <>
-                      Password: {record.user.password} <br />
                       Bank Name: {record.bankName} <br />
                       Account Number: {record.bankAccountNumber} <br />
                       Balance: R{(record.bankBalance ?? 0).toFixed(2)}
@@ -393,11 +418,10 @@ const SupervisorPage = () => {
               <Typography variant="h6" gutterBottom>
                 UPDATE BANK ACCOUNT
               </Typography>
-              <TextField label="Username" name="username" value={newUserData.username} InputProps={{ readOnly: true }} onChange={handleChange} fullWidth sx={{ mb: 2 }} />
-              <TextField label="Password" name="password" type="password" value={newUserData.password} onChange={handleChange} fullWidth sx={{ mb: 2 }} />
-              <TextField label="Bank Name" name="bankName" value={newUserData.bankName} onChange={handleChange} fullWidth sx={{ mb: 2 }} />
-              <TextField label="Bank Account Number" name="bankAccountNumber" value={newUserData.bankAccountNumber} InputProps={{ readOnly: true }} fullWidth sx={{ mb: 2 }} />
-              <TextField label="Balance" name="bankBalance" value={newUserData.bankBalance} InputProps={{ readOnly: true }} fullWidth sx={{ mb: 2 }} />
+              
+              <TextField label="Password" name="password" type="password" value={updateUserData.password} onChange={updateChange} fullWidth sx={{ mb: 2 }} />
+              <TextField label="Bank Name" name="bankName" value={updateUserData.bankName} onChange={updateChange} fullWidth sx={{ mb: 2 }} />
+              
               <Button variant="contained" color="warning" onClick={updateUser} fullWidth sx={{ mb: 2 }}>
                 UPDATE BANK ACCOUNT
               </Button>

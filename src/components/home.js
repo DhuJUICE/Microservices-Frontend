@@ -42,8 +42,6 @@ const Home = () => {
       const userName = localStorage.getItem("username");
       const userId = localStorage.getItem("userId");
 
-      alert("Token: " + token + "\nRole: " + role + "\nUsername: " + userName + "\nUserId: " + userId);
-
       // Redirect user based on role
       if (role === "bank_supervisor") {
         navigate("/supervisor");
